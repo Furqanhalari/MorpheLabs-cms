@@ -1,0 +1,73 @@
+:root {
+  --ml-primary:    #00B4D8;
+  --ml-primary-dk: #0090A8;
+  --ml-accent:     #7C3AED;
+  --ml-dark:       #0D1117;
+  --ml-surface:    #111827;
+  --ml-text:       #E8EDF5;
+  --ml-muted:      #6B7A99;
+  --ml-border:     rgba(255,255,255,0.07);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f7fa;
+  color: #1a1a2e;
+}
+
+/* ── Ant Design overrides ───────────────────────────────────────────── */
+.ant-layout-sider {
+  background: var(--ml-dark) !important;
+}
+.ant-menu-dark {
+  background: var(--ml-dark) !important;
+}
+.ant-menu-dark .ant-menu-item-selected {
+  background: var(--ml-primary) !important;
+}
+.ant-layout-header {
+  background: #fff !important;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 24px !important;
+}
+
+/* ── Status badges ──────────────────────────────────────────────────── */
+.status-published { color: #52c41a; font-weight: 600; }
+.status-draft     { color: #faad14; font-weight: 600; }
+.status-archived  { color: #8c8c8c; font-weight: 600; }
+.status-scheduled { color: #1677ff; font-weight: 600; }
+.status-active    { color: #52c41a; font-weight: 600; }
+.status-closed    { color: #ff4d4f; font-weight: 600; }
+
+/* ── Content area ───────────────────────────────────────────────────── */
+.page-content {
+  padding: 24px;
+  min-height: calc(100vh - 64px);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+/* ── Rich text editor ───────────────────────────────────────────────── */
+.ql-editor { min-height: 300px; font-size: 15px; line-height: 1.7; }
+.ql-container { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
+.ql-toolbar { border-top-left-radius: 6px; border-top-right-radius: 6px; }
+
+/* ── Stat cards ─────────────────────────────────────────────────────── */
+.stat-card { border-radius: 8px; }
+.stat-card .ant-statistic-title { font-size: 13px; color: #666; }
+.stat-card .ant-statistic-content-value { font-size: 32px; font-weight: 700; }
+
+/* ── Table actions ──────────────────────────────────────────────────── */
+.table-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── Form layout ────────────────────────────────────────────────────── */
+.form-card { background: #fff; border-radius: 8px; padding: 24px; }
+.sider-card { background: #fff; border-radius: 8px; padding: 20px; }

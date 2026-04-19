@@ -1,0 +1,19 @@
+{
+  "name": "morphelabs-cms",
+  "version": "1.0.0",
+  "description": "MorpheLabs CMS — Full-stack CMS with Node.js, React, Next.js and PostgreSQL",
+  "private": true,
+  "scripts": {
+    "install:all":  "cd backend && npm install && cd ../admin && npm install && cd ../frontend && npm install",
+    "dev:backend":  "cd backend && npm run dev",
+    "dev:admin":    "cd admin && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "db:migrate":   "cd backend && npx prisma migrate dev",
+    "db:seed":      "cd backend && npm run db:seed",
+    "db:generate":  "cd backend && npx prisma generate",
+    "build:admin":  "cd admin && npm run build",
+    "build:frontend":"cd frontend && npm run build"
+  },
+  "author": "Furqan Halari — MorpheLabs Internship",
+  "license": "MIT"
+}

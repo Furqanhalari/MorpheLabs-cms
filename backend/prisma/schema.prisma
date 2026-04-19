@@ -1,0 +1,362 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  SUPER_ADMIN
+  CONTENT_MANAGER
+  BLOG_EDITOR
+  BLOG_AUTHOR
+  HR_MANAGER
+  VIEWER
+}
+
+enum PostStatus {
+  DRAFT
+  PENDING_REVIEW
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum JobStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+  EXPIRED
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  REVIEWED
+  SHORTLISTED
+  REJECTED
+  HIRED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
+}
+
+enum LocationType {
+  ONSITE
+  REMOTE
+  HYBRID
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  OTHER
+}
+
+// ─── AUTH & USERS ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  password     String
+  firstName    String
+  lastName     String
+  role         Role     @default(BLOG_AUTHOR)
+  avatar       String?
+  isActive     Boolean  @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  posts           Post[]
+  refreshTokens   RefreshToken[]
+  auditLogs       AuditLog[]
+  passwordResets  PasswordReset[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  isRevoked Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("password_resets")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  resource   String
+  resourceId String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── MEDIA LIBRARY ────────────────────────────────────────────────────────────
+
+model MediaFile {
+  id           String    @id @default(uuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  type         MediaType
+  alt          String?
+  caption      String?
+  uploadedById String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([type])
+  @@index([uploadedById])
+  @@map("media_files")
+}
+
+// ─── BLOG MODULE ──────────────────────────────────────────────────────────────
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts PostCategory[]
+
+  @@index([slug])
+  @@map("categories")
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  posts PostTag[]
+
+  @@index([slug])
+  @@map("tags")
+}
+
+model Post {
+  id              String     @id @default(uuid())
+  title           String
+  slug            String     @unique
+  excerpt         String?
+  content         String
+  featuredImage   String?
+  status          PostStatus @default(DRAFT)
+  isFeatured      Boolean    @default(false)
+  readingTime     Int?
+  authorId        String
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  viewCount       Int        @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  author     User           @relation(fields: [authorId], references: [id])
+  categories PostCategory[]
+  tags       PostTag[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([authorId])
+  @@index([publishedAt])
+  @@index([isFeatured])
+  @@map("posts")
+}
+
+model PostCategory {
+  postId     String
+  categoryId String
+
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([postId, categoryId])
+  @@map("post_categories")
+}
+
+model PostTag {
+  postId String
+  tagId  String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("post_tags")
+}
+
+// ─── SERVICES MODULE ──────────────────────────────────────────────────────────
+
+model ServiceCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services Service[]
+
+  @@map("service_categories")
+}
+
+model Service {
+  id          String           @id @default(uuid())
+  title       String
+  slug        String           @unique
+  description String
+  content     String
+  icon        String?
+  image       String?
+  categoryId  String?
+  isPublished Boolean          @default(false)
+  sortOrder   Int              @default(0)
+  features    String[]
+  metaTitle   String?
+  metaDesc    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  category   ServiceCategory? @relation(fields: [categoryId], references: [id])
+  portfolios PortfolioItem[]
+
+  @@index([slug])
+  @@index([isPublished])
+  @@index([sortOrder])
+  @@map("services")
+}
+
+model PortfolioItem {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  clientName  String
+  industry    String
+  description String
+  content     String
+  coverImage  String?
+  images      String[]
+  results     Json?
+  tags        String[]
+  serviceId   String?
+  isPublished Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  service Service? @relation(fields: [serviceId], references: [id])
+
+  @@index([slug])
+  @@index([isPublished])
+  @@map("portfolio_items")
+}
+
+// ─── CAREERS MODULE ───────────────────────────────────────────────────────────
+
+model JobListing {
+  id               String         @id @default(uuid())
+  title            String
+  slug             String         @unique
+  department       String
+  location         String
+  locationType     LocationType   @default(HYBRID)
+  employmentType   EmploymentType @default(FULL_TIME)
+  description      String
+  requirements     String
+  responsibilities String
+  benefits         String?
+  salaryMin        Int?
+  salaryMax        Int?
+  salaryCurrency   String?        @default("USD")
+  status           JobStatus      @default(DRAFT)
+  applicationDeadline DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  applications Application[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([department])
+  @@map("job_listings")
+}
+
+model Application {
+  id           String            @id @default(uuid())
+  jobId        String
+  firstName    String
+  lastName     String
+  email        String
+  phone        String?
+  resumeUrl    String
+  coverLetter  String?
+  linkedInUrl  String?
+  portfolioUrl String?
+  status       ApplicationStatus @default(SUBMITTED)
+  notes        String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  job JobListing @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([status])
+  @@index([email])
+  @@map("applications")
+}
